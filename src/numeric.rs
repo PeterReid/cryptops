@@ -1,6 +1,6 @@
 
 macro_rules! define_numeric_type(
-    ($name:ident, $inner_type:ident) => (
+    ($name:ident, $condition_name:ident, $inner_type:ident) => (
         #[deriving(Copy, Show)]
         pub struct $name {
             pub value: $inner_type
@@ -11,15 +11,49 @@ macro_rules! define_numeric_type(
                 $name{value: value}
             }
         }
+
+        #[deriving(Copy, Show)]
+        pub struct $condition_name {
+            pub mask: $inner_type
+        }
     )
 )
 
-define_numeric_type!(CryptoU64, u64)
-define_numeric_type!(CryptoI64, i64)
-define_numeric_type!(CryptoU32, u32)
-define_numeric_type!(CryptoI32, i32)
-define_numeric_type!(CryptoU8, u8)
-define_numeric_type!(CryptoI8, i8)
+define_numeric_type!(CryptoU64, CryptoU64Condition, u64)
+define_numeric_type!(CryptoI64, CryptoI64Condition, i64)
+define_numeric_type!(CryptoU32, CryptoU32Condition, u32)
+define_numeric_type!(CryptoI32, CryptoI32Condition, i32)
+define_numeric_type!(CryptoU8,  CryptoU8Condition,  u8 )
+define_numeric_type!(CryptoI8,  CryptoI8Condition,  i8 )
+
+#[cfg(target_arch = "x86_64")]
+impl CryptoU32Condition {
+    pub fn equal(a: CryptoU32, b: CryptoU32) -> CryptoU32Condition {
+        let ones: u32 = 0xffffffff;
+        let mask: u32;
+        let zeros: u32 = 0;
+        unsafe {
+            asm!("cmp $2, $3
+                  cmove $1, $0"
+                  : "=r"(mask) : "r"(ones), "r"(a.value), "r"(b.value), "0"(zeros) : "cc");
+        }
+        CryptoU32Condition{mask: mask}
+    }
+
+    pub fn select(&self, a: CryptoU32, b: CryptoU32) -> CryptoU32 {
+        let ret: u32;
+        let zero: u32 = 0;
+        unsafe {
+            asm!("cmp $3, $4
+                  cmove $1, $0"
+                  : "=r"(ret) : "r"(b.value), "0"(a.value), "r"(zero), "r"(self.mask) : "cc")
+        }
+        CryptoU32::new(ret)
+    }
+}
+
+
+
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 macro_rules! define_binary_op(
@@ -129,3 +163,5 @@ simple_x86_binary_ops!(BitAnd, bitand, "and $1, $0")
 
 simple_x86_unary_ops!(Not, not, "not $0")
 simple_x86_unary_ops!(Neg, neg, "neg $0")
+
+

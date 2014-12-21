@@ -1,10 +1,12 @@
 #![feature(macro_rules)]
+#![feature(asm)]
 
 pub mod numeric;
 
 #[cfg(test)]
 mod test {
     use numeric::{CryptoU64, CryptoI64, CryptoU32, CryptoI32, CryptoU8, CryptoI8};
+    use numeric::{CryptoU32Condition};
 
     #[test]
     fn wrap_unwrap() {
@@ -92,5 +94,16 @@ mod test {
             assert_eq!((-CryptoI64::new(a)).value, -a);
             assert_eq!((-CryptoI64::new(b)).value, -b);
         }
+    }
+
+    #[test]
+    fn u32_if() {
+        let one = CryptoU32::new(1);
+        let four = CryptoU32::new(4);
+        let five = CryptoU32::new(5);
+        let twenty = CryptoU32::new(20);
+
+        assert_eq!(CryptoU32Condition::equal(four, four).select(one, twenty).value, 1);
+        assert_eq!(CryptoU32Condition::equal(four, five).select(one, twenty).value, 20);
     }
 }
