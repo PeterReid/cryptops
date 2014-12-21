@@ -52,50 +52,80 @@ macro_rules! define_unary_op(
 )
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoU32, Add, add, "add $1, $0")
+macro_rules! simple_x86_binary_ops(
+    ($trait_name:ident, $function_name:ident, $asm:expr) => (
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_binary_op!(CryptoU8, $trait_name, $function_name, $asm)
 
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_binary_op!(CryptoI8, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_binary_op!(CryptoU32, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_binary_op!(CryptoI32, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86_64"))]
+        define_binary_op!(CryptoU64, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86_64"))]
+        define_binary_op!(CryptoI64, $trait_name, $function_name, $asm)
+    )
+)
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoI32, Add, add, "add $1, $0")
+macro_rules! simple_x86_unary_ops(
+    ($trait_name:ident, $function_name:ident, $asm:expr) => (
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_unary_op!(CryptoU8, $trait_name, $function_name, $asm)
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoU32, Sub, sub, "sub $1, $0")
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_unary_op!(CryptoI8, $trait_name, $function_name, $asm)
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoI32, Sub, sub, "sub $1, $0")
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_unary_op!(CryptoU32, $trait_name, $function_name, $asm)
 
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        define_unary_op!(CryptoI32, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86_64"))]
+        define_unary_op!(CryptoU64, $trait_name, $function_name, $asm)
+
+        #[cfg(any(target_arch = "x86_64"))]
+        define_unary_op!(CryptoI64, $trait_name, $function_name, $asm)
+    )
+)
+
+
+
+// addition
+simple_x86_binary_ops!(Add, add, "add $1, $0")
+
+// subtraction
+simple_x86_binary_ops!(Sub, sub, "sub $1, $0")
+
+// multiplication
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_binary_op!(CryptoU32, Mul, mul, "imul $1, $0")
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 define_binary_op!(CryptoI32, Mul, mul, "imul $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoU32, BitXor, bitxor, "xor $1, $0")
+#[cfg(any(target_arch = "x86_64"))]
+define_binary_op!(CryptoU64, Mul, mul, "imul $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoI32, BitXor, bitxor, "xor $1, $0")
+#[cfg(any(target_arch = "x86_64"))]
+define_binary_op!(CryptoI64, Mul, mul, "imul $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoU32, BitOr, bitor, "or $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoI32, BitOr, bitor, "or $1, $0")
+// xor
+simple_x86_binary_ops!(BitXor, bitxor, "xor $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoU32, BitAnd, bitand, "and $1, $0")
+// or
+simple_x86_binary_ops!(BitOr, bitor, "or $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_binary_op!(CryptoI32, BitAnd, bitand, "and $1, $0")
+// and
+simple_x86_binary_ops!(BitAnd, bitand, "and $1, $0")
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_unary_op!(CryptoU32, Not, not, "not $0")
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_unary_op!(CryptoI32, Not, not, "not $0")
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_unary_op!(CryptoU32, Neg, neg, "neg $0")
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-define_unary_op!(CryptoI32, Neg, neg, "neg $0")
-
+simple_x86_unary_ops!(Not, not, "not $0")
+simple_x86_unary_ops!(Neg, neg, "neg $0")
